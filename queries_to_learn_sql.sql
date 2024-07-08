@@ -72,7 +72,7 @@ WHERE (p.CategoryName ='Category 2' AND p.Price > 350) OR p.Price > 350;
 -- Price average by the product category
 SELECT p.categoryname, ROUND(AVG(p.price),2) AS AVG_Price
 FROM dw.Product p
-GROUP BY p.categoryname;
+GROUP BY p.categoryname; (--column-level aggregation)
 
 -- Revenue average by the product category
 SELECT p.categoryname, ROUND(AVG(s.revenue),2) AS AVG_Revenue
@@ -148,10 +148,20 @@ HAVING SUM (s.revenue) > (
 	-- Calc average revenue
 	SELECT AVG(Total_revenue)
 	FROM(
-		-- Calc total revenue by customer
+		-- Calc sum of revenue by customer
 		SELECT SUM(s.revenue) AS Total_revenue
 		FROM dw.Sales s
 		GROUP BY s.customerid
 	) AS Subquery
 )
 ORDER BY Total_revenue;
+
+--Window Function (row-level aggregation)
+-- Calculate the cumulative revenue total for each customer, ordered by the sale date.
+SELECT c.name, d.date, s.revenue, SUM(s.revenue) OVER(PARTITION BY c.customerid ORDER BY d.date ASC) AS Cumulative_Total
+FROM dw.Sales s
+JOIN dw.Customer c ON s.customerid = c.customerid
+JOIN dw.Date d ON s.dateid = d.dateid
+ORDER BY
+c.name,d.date;
+
